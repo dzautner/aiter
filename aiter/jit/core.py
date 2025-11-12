@@ -24,8 +24,10 @@ from chip_info import get_gfx
 from cpp_extension import _jit_compile, get_hip_version
 from file_baton import FileBaton
 from torch_guard import torch_compile_guard  # noqa: E402
+from aiter.jit.utils.cache_dir import get_cache_layout
 
 AITER_REBUILD = int(os.environ.get("AITER_REBUILD", "0"))
+CACHE_LAYOUT = get_cache_layout()
 
 aiter_lib = None
 
@@ -281,10 +283,10 @@ def get_user_jit_dir() -> str:
     else:
         if os.access(this_dir, os.W_OK):
             return this_dir
-    home_jit_dir = f"{os.path.expanduser('~')}/.aiter/{os.path.basename(this_dir)}"
-    if not os.path.exists(home_jit_dir):
+    home_jit_dir = CACHE_LAYOUT.jit_dir / os.path.basename(this_dir)
+    if not home_jit_dir.exists():
         shutil.copytree(this_dir, home_jit_dir)
-    return home_jit_dir
+    return str(home_jit_dir)
 
 
 bd_dir = f"{get_user_jit_dir()}/build"

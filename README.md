@@ -25,6 +25,17 @@ If you happen to forget the `--recursive` during `clone`, you can use the follow
 git submodule sync && git submodule update --init --recursive
 ```
 
+### Cache directory
+
+AITER now resolves its cache directory dynamically. By default it follows your platform conventions—`$XDG_CACHE_HOME/aiter` on Linux, `~/Library/Caches/aiter` on macOS, and `%LOCALAPPDATA%\Aiter\Cache` on Windows—with automatic migration from the legacy `~/.aiter` folder on first use. You can override the location with the `AITER_CACHE_HOME` environment variable (or `AITER_JIT_DIR` for the JIT staging tree) before running any AITER commands:
+
+```
+export AITER_CACHE_HOME=/raid/aiter-cache
+python3 op_tests/test_layernorm2d.py
+```
+
+Existing overrides that relied on `AITER_ROOT_DIR` continue to work, but new deployments should prefer `AITER_CACHE_HOME` for clarity.
+
 ## Run operators supported by aiter
 
 There are number of op test, you can run them with: `python3 op_tests/test_layernorm2d.py`

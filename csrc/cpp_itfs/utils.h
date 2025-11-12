@@ -34,12 +34,56 @@ __inline__ void init_lru_cache(std::unique_ptr<LRUCache<K, V>>& lru_cache){
 
 static std::filesystem::path aiter_root_dir;
 
-__inline__ void init_root_dir(){
-    char* AITER_ROOT_DIR = std::getenv("AITER_ROOT_DIR");
-    if (!AITER_ROOT_DIR){
-        AITER_ROOT_DIR = std::getenv("HOME");
+__inline__ std::filesystem::path determine_cache_home(){
+    if (const char* cache_home = std::getenv("AITER_CACHE_HOME")){
+        if(cache_home[0] != '\0'){
+            return std::filesystem::path(cache_home);
+        }
     }
-    aiter_root_dir=std::filesystem::path(AITER_ROOT_DIR)/".aiter";
+
+    if (const char* legacy_root = std::getenv("AITER_ROOT_DIR")){
+        if(legacy_root[0] != '\0'){
+            return std::filesystem::path(legacy_root)/".aiter";
+        }
+    }
+
+#ifdef _WIN32
+    if (const char* local_appdata = std::getenv("LOCALAPPDATA")){
+        if(local_appdata[0] != '\0'){
+            return std::filesystem::path(local_appdata)/"Aiter"/"Cache";
+        }
+    }
+    if (const char* appdata = std::getenv("APPDATA")){
+        if(appdata[0] != '\0'){
+            return std::filesystem::path(appdata)/"Aiter"/"Cache";
+        }
+    }
+    if (const char* user_profile = std::getenv("USERPROFILE")){
+        if(user_profile[0] != '\0'){
+            return std::filesystem::path(user_profile)/"AppData"/"Local"/"Aiter"/"Cache";
+        }
+    }
+#else
+    if (const char* xdg_cache = std::getenv("XDG_CACHE_HOME")){
+        if(xdg_cache[0] != '\0'){
+            return std::filesystem::path(xdg_cache)/"aiter";
+        }
+    }
+    if (const char* home = std::getenv("HOME")){
+        if(home[0] != '\0'){
+#ifdef __APPLE__
+            return std::filesystem::path(home)/"Library"/"Caches"/"aiter";
+#else
+            return std::filesystem::path(home)/".cache"/"aiter";
+#endif
+        }
+    }
+#endif
+    return std::filesystem::temp_directory_path()/"aiter";
+}
+
+__inline__ void init_root_dir(){
+    aiter_root_dir=determine_cache_home();
 }
 
 __inline__ std::filesystem::path get_root_dir(){

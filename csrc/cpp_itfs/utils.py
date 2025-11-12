@@ -15,6 +15,8 @@ import hashlib
 import logging
 import time
 
+from aiter.jit.utils.cache_dir import get_cache_layout
+
 
 logger = logging.getLogger("aiter")
 this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,10 +33,11 @@ DEFAULT_GPU_ARCH = (
 GPU_ARCH = os.environ.get("GPU_ARCHS", DEFAULT_GPU_ARCH)
 AITER_REBUILD = int(os.environ.get("AITER_REBUILD", 0))
 
-HOME_PATH = os.environ.get("HOME")
+cache_layout = get_cache_layout()
+AITER_CACHE_HOME = str(cache_layout.root)
+AITER_ROOT_DIR = AITER_CACHE_HOME
 AITER_MAX_CACHE_SIZE = os.environ.get("AITER_MAX_CACHE_SIZE", None)
-AITER_ROOT_DIR = os.environ.get("AITER_ROOT_DIR", f"{HOME_PATH}/.aiter")
-BUILD_DIR = os.path.abspath(os.path.join(AITER_ROOT_DIR, "build"))
+BUILD_DIR = str(cache_layout.build_dir)
 AITER_LOG_MORE = int(os.getenv("AITER_LOG_MORE", 0))
 AITER_DEBUG = int(os.getenv("AITER_DEBUG", 0))
 
