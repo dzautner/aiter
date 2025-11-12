@@ -36,6 +36,19 @@ python3 op_tests/test_layernorm2d.py
 
 Existing overrides that relied on `AITER_ROOT_DIR` continue to work, but new deployments should prefer `AITER_CACHE_HOME` for clarity.
 
+### LUMI build helper
+
+LUMI users can lean on `scripts/lumi_build.sh` to load the recommended module stack, export `GPU_ARCHS=gfx90a`, point `AITER_CACHE_HOME` at `/scratch/<proj>/aiter_cache`, and run the editable install:
+
+```
+salloc --account=<proj> --partition=small-g --nodes=1 --gpus-per-node=1 --time=02:00:00
+srun --pty bash
+cd /projappl/<proj>/aiter
+scripts/lumi_build.sh --project <proj>
+```
+
+Customize cache or virtualenv locations with `--cache-dir` and `--venv` if needed. Install a ROCm-enabled PyTorch wheel in that virtualenv ahead of time (or pass `--torch-wheel <url>` to the script) and the helper will also auto-load a recent Python module (configurable via `AITER_PYTHON_MODULE=<module>`) so newer wheels such as `pybind11>=3.0.1` install cleanly.
+
 ## Run operators supported by aiter
 
 There are number of op test, you can run them with: `python3 op_tests/test_layernorm2d.py`

@@ -225,20 +225,26 @@ def torch_compile_guard(
                         calling_func, mutates_args=mutates_args
                     )
                 else:
-                    # for pytorch 2.4
                     import torch._custom_op.impl
 
-                    # torch 2.4 not support mutates "unknown" for inplace all param
-                    if mutates_args == "unknown":
-                        mutates_args_custom = []
+                    infer_schema_impl = torch._custom_op.impl.infer_schema
 
-                        for param_name, param in sig.parameters.items():
-                            if param.annotation == torch.Tensor:
-                                mutates_args_custom.append(param_name)
+                    if infer_schema_impl.__code__.co_argcount == 1:
+                        # Older PyTorch (<=2.1) only accepts the callable
+                        schema = infer_schema_impl(calling_func)
+                    else:
+                        if mutates_args == "unknown":
+                            mutates_args_custom = [
+                                name
+                                for name, param in sig.parameters.items()
+                                if param.annotation == torch.Tensor
+                            ]
+                        else:
+                            mutates_args_custom = mutates_args
 
-                    schema = torch._custom_op.impl.infer_schema(
-                        calling_func, mutates_args_custom
-                    )
+                        schema = infer_schema_impl(
+                            calling_func, mutates_args_custom
+                        )
             return schema
 
         schema = wrapper_register(calling_func)
